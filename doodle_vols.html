@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sélection de vols — Équipe Damae</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f4f6fa;
+    padding: 28px 16px;
+    color: #1a1a2e;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { font-size: 0.85rem; color: #666; margin-bottom: 24px; }
+  .card {
+    background: white; border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border: 1px solid #e8eaf0;
+  }
+  .card-title {
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #888; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: #444; margin-bottom: 5px; margin-top: 12px; }
+  label:first-of-type { margin-top: 0; }
+  input[type="text"] {
+    width: 100%; padding: 9px 12px;
+    border: 1.5px solid #dde1ea; border-radius: 8px;
+    font-size: 0.9rem; color: #222; background: #fafbfd;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { outline: none; border-color: #4f6ef7; background: white; }
+  .ff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .ff-hint { font-size: 0.7rem; color: #aaa; margin-top: 2px; }
+  .section-note { font-size: 0.75rem; color: #aaa; margin-bottom: 10px; font-style: italic; }
+  .flight-options { display: flex; flex-direction: column; gap: 8px; }
+  .flight-option {
+    border: 1.5px solid #dde1ea; border-radius: 9px;
+    padding: 10px 14px; cursor: pointer;
+    transition: all 0.18s;
+    display: flex; align-items: center; gap: 12px;
+    background: #fafbfd;
+  }
+  .flight-option:hover { border-color: #4f6ef7; background: #f0f3ff; }
+  .flight-option.selected { border-color: #4f6ef7; background: #f0f3ff; box-shadow: 0 0 0 3px #e0e7ff; }
+  .flight-option input[type="radio"] { accent-color: #4f6ef7; width: 16px; height: 16px; flex-shrink: 0; }
+  .flight-info { flex: 1; }
+  .flight-main { font-size: 0.93rem; font-weight: 700; color: #1a1a2e; }
+  .flight-detail { font-size: 0.77rem; color: #777; margin-top: 1px; }
+  .flight-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+  .badge-af { background: #fff0f0; color: #c0392b; }
+  .badge-lh { background: #eef3ff; color: #1a3a7c; }
+  .seat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .choice-btn {
+    border: 1.5px solid #dde1ea; border-radius: 8px;
+    padding: 9px 6px; text-align: center; cursor: pointer;
+    font-size: 0.8rem; font-weight: 600; color: #555;
+    background: #fafbfd; transition: all 0.15s; user-select: none;
+  }
+  .choice-btn:hover { border-color: #4f6ef7; color: #4f6ef7; }
+  .choice-btn.selected { background: #4f6ef7; color: white; border-color: #4f6ef7; }
+  .choice-btn .ico { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+  .bag-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .submit-btn {
+    width: 100%; padding: 13px; background: #4f6ef7; color: white;
+    border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; margin-top: 8px; transition: background 0.2s, transform 0.1s;
+  }
+  .submit-btn:hover { background: #3a5be0; }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { background: #10b981; cursor: default; }
+
+  /* Tableau temps réel */
+  .results-section { margin-top: 32px; }
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .results-title { font-size: 1rem; font-weight: 700; color: #1a1a2e; }
+  .results-count {
+    font-size: 0.78rem; font-weight: 600;
+    background: #e0e7ff; color: #4f6ef7;
+    padding: 3px 10px; border-radius: 20px;
+  }
+  .results-grid { display: flex; flex-direction: column; gap: 8px; }
+  .result-row {
+    background: white; border: 1px solid #e8eaf0;
+    border-radius: 10px; padding: 12px 16px;
+    display: grid; grid-template-columns: 160px 1fr 1fr auto;
+    align-items: center; gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .result-name { font-weight: 700; font-size: 0.88rem; color: #1a1a2e; }
+  .result-flight { font-size: 0.78rem; color: #555; }
+  .result-flight strong { display: block; font-size: 0.82rem; color: #1a1a2e; }
+  .result-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  .tag {
+    font-size: 0.68rem; font-weight: 600;
+    padding: 2px 7px; border-radius: 12px;
+    background: #f1f3f9; color: #555;
+  }
+  .tag-seat { background: #fef9e7; color: #b7770d; }
+  .tag-bag { background: #eafaf1; color: #1e8449; }
+  .empty-state { text-align: center; color: #aaa; font-size: 0.85rem; padding: 24px; }
+  .refresh-dot {
+    display: inline-block; width: 7px; height: 7px;
+    background: #10b981; border-radius: 50%;
+    margin-right: 6px; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  @media (max-width: 520px) {
+    .ff-row { grid-template-columns: 1fr; }
+    .bag-grid { grid-template-columns: repeat(2, 1fr); }
+    .seat-grid { grid-template-columns: repeat(2, 1fr); }
+    .result-row { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
+    .result-tags { justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<h1>✈️ Sélection de vols — Voyage équipe</h1>
+<p class="subtitle">Lundi 7 juillet (aller CDG→MUC) · Jeudi 10 juillet (retour MUC→CDG) · Tous les vols sont directs.</p>
+
+<!-- Identité -->
+<div class="card">
+  <div class="card-title">👤 Vos informations</div>
+  <label>Nom &amp; Prénom <span style="color:#ef4444">*</span></label>
+  <input type="text" id="name" placeholder="ex. Marie Dupont">
+  <div class="ff-row">
+    <div>
+      <label>N° fidélité Air France (Flying Blue)</label>
+      <input type="text" id="ff_af" placeholder="ex. 0123456789">
+      <div class="ff-hint">Laisser vide si non applicable</div>
+    </div>
+    <div>
+      <label>N° fidélité Lufthansa (Miles &amp; More)</label>
+      <input type="text" id="ff_lh" placeholder="ex. 9876543210">
+      <div class="ff-hint">Laisser vide si non applicable</div>
+    </div>
+  </div>
+</div>
+
+<!-- Vol aller -->
+<div class="card">
+  <div class="card-title">🛫 Vol aller — Lundi 7 juillet · CDG → MUC</div>
+  <p class="section-note">Tous directs · Sélectionnez l'horaire qui vous convient</p>
+  <div class="flight-options" id="outbound-options">
+    <div class="flight-option" onclick="selectFlight('outbound',0,this)">
+      <input type="radio" name="outbound">
+      <div class="flight-info"><div class="flight-main">12:55 → 14:35 &nbsp;·&nbsp; 1h40</div><div class="flight-detail">Air France · CDG T2 → MUC T2</div></div>
+      <span class="flight-badge badge-af">AIR FRANCE</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('outbound',1,this)">
+      <input type="radio" name="outbound">
+      <div class="flight-info"><div class="flight-main">15:45 → 17:20 &nbsp;·&nbsp; 1h35</div><div class="flight-detail">Air France HOP · CDG T2 → MUC T2</div></div>
+      <span class="flight-badge badge-af">AF HOP</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('outbound',2,this)">
+      <input type="radio" name="outbound">
+      <div class="flight-info"><div class="flight-main">20:20 → 21:55 &nbsp;·&nbsp; 1h35</div><div class="flight-detail">Air France · CDG T2 → MUC T2</div></div>
+      <span class="flight-badge badge-af">AIR FRANCE</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('outbound',3,this)">
+      <input type="radio" name="outbound">
+      <div class="flight-info"><div class="flight-main">12:00 → 13:30 &nbsp;·&nbsp; 1h30</div><div class="flight-detail">Lufthansa · CDG T1 → MUC T2</div></div>
+      <span class="flight-badge badge-lh">LUFTHANSA</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('outbound',4,this)">
+      <input type="radio" name="outbound">
+      <div class="flight-info"><div class="flight-main">14:15 → 15:45 &nbsp;·&nbsp; 1h30</div><div class="flight-detail">Lufthansa City Airlines · CDG T1 → MUC T2</div></div>
+      <span class="flight-badge badge-lh">LH CITY</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('outbound',5,this)">
+      <input type="radio" name="outbound">
+      <div class="flight-info"><div class="flight-main">18:00 → 19:30 &nbsp;·&nbsp; 1h30</div><div class="flight-detail">Lufthansa · CDG T1 → MUC T2</div></div>
+      <span class="flight-badge badge-lh">LUFTHANSA</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('outbound',6,this)">
+      <input type="radio" name="outbound">
+      <div class="flight-info"><div class="flight-main">20:55 → 22:25 &nbsp;·&nbsp; 1h30</div><div class="flight-detail">Lufthansa · CDG T1 → MUC T2</div></div>
+      <span class="flight-badge badge-lh">LUFTHANSA</span>
+    </div>
+  </div>
+</div>
+
+<!-- Vol retour -->
+<div class="card">
+  <div class="card-title">🛬 Vol retour — Jeudi 10 juillet · MUC → CDG</div>
+  <p class="section-note">Tous directs · Sélectionnez l'horaire qui vous convient</p>
+  <div class="flight-options" id="return-options">
+    <div class="flight-option" onclick="selectFlight('return',0,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">10:10 → 11:55 &nbsp;·&nbsp; 1h45</div><div class="flight-detail">Air France · MUC → CDG</div></div>
+      <span class="flight-badge badge-af">AIR FRANCE</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('return',1,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">15:30 → 17:10 &nbsp;·&nbsp; 1h40</div><div class="flight-detail">Air France · MUC → CDG</div></div>
+      <span class="flight-badge badge-af">AIR FRANCE</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('return',2,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">18:15 → 19:55 &nbsp;·&nbsp; 1h40</div><div class="flight-detail">Air France HOP · MUC → CDG</div></div>
+      <span class="flight-badge badge-af">AF HOP</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('return',3,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">09:40 → 11:15 &nbsp;·&nbsp; 1h35</div><div class="flight-detail">Lufthansa · MUC T2 → CDG T1</div></div>
+      <span class="flight-badge badge-lh">LUFTHANSA</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('return',4,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">12:05 → 13:40 &nbsp;·&nbsp; 1h35</div><div class="flight-detail">Lufthansa City Airlines · MUC T2 → CDG T1</div></div>
+      <span class="flight-badge badge-lh">LH CITY</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('return',5,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">15:40 → 17:15 &nbsp;·&nbsp; 1h35</div><div class="flight-detail">Lufthansa · MUC T2 → CDG T1</div></div>
+      <span class="flight-badge badge-lh">LUFTHANSA</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('return',6,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">18:40 → 20:15 &nbsp;·&nbsp; 1h35</div><div class="flight-detail">Lufthansa · MUC T2 → CDG T1</div></div>
+      <span class="flight-badge badge-lh">LUFTHANSA</span>
+    </div>
+    <div class="flight-option" onclick="selectFlight('return',7,this)">
+      <input type="radio" name="ret">
+      <div class="flight-info"><div class="flight-main">22:00 → 23:35 &nbsp;·&nbsp; 1h35</div><div class="flight-detail">Lufthansa City Airlines · MUC T2 → CDG T1</div></div>
+      <span class="flight-badge badge-lh">LH CITY</span>
+    </div>
+  </div>
+</div>
+
+<!-- Siège -->
+<div class="card">
+  <div class="card-title">💺 Préférence de siège</div>
+  <div class="seat-grid">
+    <div class="choice-btn" onclick="selectSeat('Hublot',this)"><span class="ico">🪟</span>Hublot</div>
+    <div class="choice-btn" onclick="selectSeat('Milieu',this)"><span class="ico">🪑</span>Milieu</div>
+    <div class="choice-btn" onclick="selectSeat('Couloir',this)"><span class="ico">🚶</span>Couloir</div>
+    <div class="choice-btn" onclick="selectSeat('Avant avion',this)"><span class="ico">⬆️</span>Avant avion</div>
+    <div class="choice-btn" onclick="selectSeat('Sortie secours',this)"><span class="ico">🚪</span>Sortie secours</div>
+    <div class="choice-btn" onclick="selectSeat('Sans préférence',this)"><span class="ico">🤷</span>Sans préférence</div>
+  </div>
+</div>
+
+<!-- Bagages -->
+<div class="card">
+  <div class="card-title">🧳 Bagages nécessaires</div>
+  <p class="section-note">Sélectionner tout ce qui s'applique</p>
+  <div class="bag-grid">
+    <div class="choice-btn" onclick="toggleBag('Bagage à main',this)"><span class="ico">🎒</span>Bagage à main seul</div>
+    <div class="choice-btn" onclick="toggleBag('Cabine 55cm',this)"><span class="ico">👜</span>Cabine (55cm)</div>
+    <div class="choice-btn" onclick="toggleBag('1 valise soute',this)"><span class="ico">🧳</span>1 valise en soute</div>
+    <div class="choice-btn" onclick="toggleBag('2 valises soute',this)"><span class="ico">🗃️</span>2 valises en soute</div>
+  </div>
+</div>
+
+<button class="submit-btn" id="submitBtn" onclick="submitForm()">✅ Envoyer mes préférences</button>
+
+<!-- Tableau temps réel -->
+<div class="results-section">
+  <div class="results-header">
+    <div class="results-title"><span class="refresh-dot"></span>Réponses de l'équipe</div>
+    <div class="results-count" id="resultsCount">0 réponse</div>
+  </div>
+  <div class="results-grid" id="resultsGrid">
+    <div class="empty-state">Aucune réponse pour l'instant…</div>
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_naSLEqlURjHtYL1m9aBVhWSBFOSGYmNjAXBBj-l4aHYtfgGHnJcyKBx3tQOPvgJy/exec";
+
+  const VOLS_ALLER = [
+    "AF · 12:55→14:35 (CDG→MUC)",
+    "AF HOP · 15:45→17:20 (CDG→MUC)",
+    "AF · 20:20→21:55 (CDG→MUC)",
+    "LH · 12:00→13:30 (CDG→MUC)",
+    "LH City · 14:15→15:45 (CDG→MUC)",
+    "LH · 18:00→19:30 (CDG→MUC)",
+    "LH · 20:55→22:25 (CDG→MUC)"
+  ];
+  const VOLS_RETOUR = [
+    "AF · 10:10→11:55 (MUC→CDG)",
+    "AF · 15:30→17:10 (MUC→CDG)",
+    "AF HOP · 18:15→19:55 (MUC→CDG)",
+    "LH · 09:40→11:15 (MUC→CDG)",
+    "LH City · 12:05→13:40 (MUC→CDG)",
+    "LH · 15:40→17:15 (MUC→CDG)",
+    "LH · 18:40→20:15 (MUC→CDG)",
+    "LH City · 22:00→23:35 (MUC→CDG)"
+  ];
+
+  var state = { outbound: null, returnFlight: null, seat: null, baggage: [] };
+
+  function selectFlight(type, idx, el) {
+    var cid = type === 'outbound' ? 'outbound-options' : 'return-options';
+    document.querySelectorAll('#' + cid + ' .flight-option').forEach(function(e){ e.classList.remove('selected'); });
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    if (type === 'outbound') state.outbound = idx; else state.returnFlight = idx;
+  }
+
+  function selectSeat(type, el) {
+    document.querySelectorAll('.seat-grid .choice-btn').forEach(function(e){ e.classList.remove('selected'); });
+    el.classList.add('selected');
+    state.seat = type;
+  }
+
+  function toggleBag(type, el) {
+    if (el.classList.contains('selected')) {
+      el.classList.remove('selected');
+      state.baggage = state.baggage.filter(function(b){ return b !== type; });
+    } else {
+      el.classList.add('selected');
+      state.baggage.push(type);
+    }
+  }
+
+  function submitForm() {
+    var name = document.getElementById('name').value.trim();
+    if (!name) { alert("Merci d'indiquer votre nom."); return; }
+    if (state.outbound === null) { alert("Veuillez choisir un vol aller."); return; }
+    if (state.returnFlight === null) { alert("Veuillez choisir un vol retour."); return; }
+    if (!state.seat) { alert("Veuillez indiquer votre préférence de siège."); return; }
+    if (state.baggage.length === 0) { alert("Veuillez indiquer vos besoins en bagages."); return; }
+
+    var btn = document.getElementById('submitBtn');
+    btn.textContent = "⏳ Envoi en cours…";
+    btn.disabled = true;
+
+    var payload = {
+      nom: name,
+      ff_af: document.getElementById('ff_af').value.trim(),
+      ff_lh: document.getElementById('ff_lh').value.trim(),
+      vol_aller: VOLS_ALLER[state.outbound],
+      vol_retour: VOLS_RETOUR[state.returnFlight],
+      siege: state.seat,
+      bagages: state.baggage.join(', ')
+    };
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      btn.textContent = "✔ Envoyé !";
+      btn.style.background = "#10b981";
+      loadResults();
+    })
+    .catch(function(){
+      btn.textContent = "✔ Envoyé !";
+      btn.style.background = "#10b981";
+      loadResults();
+    });
+  }
+
+  function seatIcon(s) {
+    var map = {'Hublot':'🪟','Milieu':'🪑','Couloir':'🚶','Avant avion':'⬆️','Sortie secours':'🚪','Sans préférence':'🤷'};
+    return (map[s] || '') + ' ' + s;
+  }
+
+  function loadResults() {
+    fetch(SCRIPT_URL)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var grid = document.getElementById('resultsGrid');
+        var count = document.getElementById('resultsCount');
+        if (!data || data.length === 0) {
+          grid.innerHTML = '<div class="empty-state">Aucune réponse pour l\'instant…</div>';
+          count.textContent = '0 réponse';
+          return;
+        }
+        count.textContent = data.length + ' réponse' + (data.length > 1 ? 's' : '');
+        grid.innerHTML = data.slice().reverse().map(function(r){
+          var allerBadge = (r.vol_aller || '').startsWith('LH') ? 'badge-lh' : 'badge-af';
+          var retourBadge = (r.vol_retour || '').startsWith('LH') ? 'badge-lh' : 'badge-af';
+          var ff = [];
+          if (r.ff_af && r.ff_af !== '—') ff.push('Flying Blue: ' + r.ff_af);
+          if (r.ff_lh && r.ff_lh !== '—') ff.push('M&M: ' + r.ff_lh);
+          return '<div class="result-row">' +
+            '<div><div class="result-name">' + r.nom + '</div>' + (ff.length ? '<div style="font-size:0.7rem;color:#aaa;margin-top:2px">' + ff.join(' · ') + '</div>' : '') + '</div>' +
+            '<div class="result-flight"><strong>🛫 Aller</strong><span class="flight-badge ' + allerBadge + '" style="font-size:0.68rem;padding:1px 6px;border-radius:10px">' + (r.vol_aller||'') + '</span></div>' +
+            '<div class="result-flight"><strong>🛬 Retour</strong><span class="flight-badge ' + retourBadge + '" style="font-size:0.68rem;padding:1px 6px;border-radius:10px">' + (r.vol_retour||'') + '</span></div>' +
+            '<div class="result-tags"><span class="tag tag-seat">' + seatIcon(r.siege) + '</span><span class="tag tag-bag">🧳 ' + (r.bagages||'') + '</span></div>' +
+            '</div>';
+        }).join('');
+      })
+      .catch(function(){ });
+  }
+
+  // Chargement initial + refresh toutes les 15s
+  loadResults();
+  setInterval(loadResults, 15000);
+</script>
+</body>
+</html>
