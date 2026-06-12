@@ -71,7 +71,10 @@
 
 <div class="results-section">
   <div class="results-header">
-    <div class="results-title"><span class="refresh-dot"></span>Réponses de l'équipe</div>
+    <div>
+      <div class="results-title"><span class="refresh-dot"></span>Réponses de l'équipe</div>
+      <div style="font-size:0.75rem;color:#888;margin-top:3px">🛫 Aller : lundi 7 juillet &nbsp;·&nbsp; 🛬 Retour : jeudi 10 juillet</div>
+    </div>
     <div class="results-count" id="resultsCount">—</div>
   </div>
   <div class="results-grid" id="resultsGrid"><div class="empty-state">Chargement…</div></div>
@@ -109,6 +112,10 @@
     <div class="flight-option" onclick="selectFlight('outbound',4,this)"><input type="radio" name="outbound"><div class="flight-info"><div class="flight-main">14:15 → 15:45 · 1h30</div><div class="flight-detail">Lufthansa City Airlines · CDG T1 → MUC T2</div></div><span class="flight-badge badge-lh">LH CITY</span></div>
     <div class="flight-option" onclick="selectFlight('outbound',5,this)"><input type="radio" name="outbound"><div class="flight-info"><div class="flight-main">18:00 → 19:30 · 1h30</div><div class="flight-detail">Lufthansa · CDG T1 → MUC T2</div></div><span class="flight-badge badge-lh">LUFTHANSA</span></div>
     <div class="flight-option" onclick="selectFlight('outbound',6,this)"><input type="radio" name="outbound"><div class="flight-info"><div class="flight-main">20:55 → 22:25 · 1h30</div><div class="flight-detail">Lufthansa · CDG T1 → MUC T2</div></div><span class="flight-badge badge-lh">LUFTHANSA</span></div>
+    <div class="flight-option" onclick="selectFlight('outbound',7,this);document.getElementById('outbound-custom-wrap').style.display='block'" style="border-style:dashed"><input type="radio" name="outbound"><div class="flight-info"><div class="flight-main" style="color:#4f6ef7">✏️ Autre vol / autre aéroport de départ</div><div class="flight-detail">Précisez ci-dessous</div></div></div>
+  </div>
+  <div id="outbound-custom-wrap" style="display:none;margin-top:8px">
+    <input type="text" id="outbound-custom" placeholder="ex. ORY → MUC · 08:30→10:15 · EasyJet" style="border-color:#4f6ef7">
   </div>
 </div>
 
@@ -124,6 +131,10 @@
     <div class="flight-option" onclick="selectFlight('return',5,this)"><input type="radio" name="ret"><div class="flight-info"><div class="flight-main">15:40 → 17:15 · 1h35</div><div class="flight-detail">Lufthansa · MUC T2 → CDG T1</div></div><span class="flight-badge badge-lh">LUFTHANSA</span></div>
     <div class="flight-option" onclick="selectFlight('return',6,this)"><input type="radio" name="ret"><div class="flight-info"><div class="flight-main">18:40 → 20:15 · 1h35</div><div class="flight-detail">Lufthansa · MUC T2 → CDG T1</div></div><span class="flight-badge badge-lh">LUFTHANSA</span></div>
     <div class="flight-option" onclick="selectFlight('return',7,this)"><input type="radio" name="ret"><div class="flight-info"><div class="flight-main">22:00 → 23:35 · 1h35</div><div class="flight-detail">Lufthansa City Airlines · MUC T2 → CDG T1</div></div><span class="flight-badge badge-lh">LH CITY</span></div>
+    <div class="flight-option" onclick="selectFlight('return',8,this);document.getElementById('return-custom-wrap').style.display='block'" style="border-style:dashed"><input type="radio" name="ret"><div class="flight-info"><div class="flight-main" style="color:#4f6ef7">✏️ Autre vol / autre aéroport d'arrivée</div><div class="flight-detail">Précisez ci-dessous</div></div></div>
+  </div>
+  <div id="return-custom-wrap" style="display:none;margin-top:8px">
+    <input type="text" id="return-custom" placeholder="ex. MUC → ORY · 14:00→15:45 · EasyJet" style="border-color:#4f6ef7">
   </div>
 </div>
 
@@ -156,12 +167,12 @@
 
   const VOLS_ALLER = [
     "AF · 12:55→14:35","AF HOP · 15:45→17:20","AF · 20:20→21:55",
-    "LH · 12:00→13:30","LH City · 14:15→15:45","LH · 18:00→19:30","LH · 20:55→22:25"
+    "LH · 12:00→13:30","LH City · 14:15→15:45","LH · 18:00→19:30","LH · 20:55→22:25","AUTRE"
   ];
   const VOLS_RETOUR = [
     "AF · 10:10→11:55","AF · 15:30→17:10","AF HOP · 18:15→19:55",
     "LH · 09:40→11:15","LH City · 12:05→13:40","LH · 15:40→17:15",
-    "LH · 18:40→20:15","LH City · 22:00→23:35"
+    "LH · 18:40→20:15","LH City · 22:00→23:35","AUTRE"
   ];
 
   var state = { outbound: null, ret: null, seat: [], bag: [] };
@@ -196,13 +207,24 @@
     btn.textContent = "⏳ Envoi…";
     btn.disabled = true;
 
+    var volAller = VOLS_ALLER[state.outbound];
+    if (volAller === 'AUTRE') {
+      var custom = document.getElementById('outbound-custom').value.trim();
+      volAller = custom ? 'Autre: ' + custom : 'Autre vol (non précisé)';
+    }
+    var volRetour = VOLS_RETOUR[state.ret];
+    if (volRetour === 'AUTRE') {
+      var customR = document.getElementById('return-custom').value.trim();
+      volRetour = customR ? 'Autre: ' + customR : 'Autre vol (non précisé)';
+    }
+
     var params = new URLSearchParams({
       action: 'write',
       nom: name,
       ff_af: document.getElementById('ff_af').value.trim() || '—',
       ff_lh: document.getElementById('ff_lh').value.trim() || '—',
-      vol_aller: VOLS_ALLER[state.outbound],
-      vol_retour: VOLS_RETOUR[state.ret],
+      vol_aller: volAller,
+      vol_retour: volRetour,
       siege: state.seat.join(', '),
       bagages: state.bag.join(', ')
     });
