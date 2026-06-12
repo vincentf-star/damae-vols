@@ -67,13 +67,13 @@
 <body>
 
 <h1>✈️ Sélection de vols — Voyage équipe</h1>
-<p class="subtitle">Lundi 7 juillet (aller CDG→MUC) · Jeudi 10 juillet (retour MUC→CDG) · Tous les vols sont directs.</p>
+<p class="subtitle">Mardi 7 juillet (aller CDG→MUC) · Vendredi 10 juillet (retour MUC→CDG) · Tous les vols sont directs.</p>
 
 <div class="results-section">
   <div class="results-header">
     <div>
       <div class="results-title"><span class="refresh-dot"></span>Réponses de l'équipe</div>
-      <div style="font-size:0.75rem;color:#888;margin-top:3px">🛫 Aller : lundi 7 juillet &nbsp;·&nbsp; 🛬 Retour : jeudi 10 juillet</div>
+      <div style="font-size:0.75rem;color:#888;margin-top:3px">🛫 Aller : mardi 7 juillet &nbsp;·&nbsp; 🛬 Retour : vendredi 10 juillet</div>
     </div>
     <div class="results-count" id="resultsCount">—</div>
   </div>
@@ -102,7 +102,7 @@
 </div>
 
 <div class="card">
-  <div class="card-title">🛫 Vol aller — Lundi 7 juillet · CDG → MUC</div>
+  <div class="card-title">🛫 Vol aller — Mardi 7 juillet · CDG → MUC</div>
   <p class="section-note">Tous directs · Sélectionnez l'horaire qui vous convient</p>
   <div class="flight-options" id="outbound-options">
     <div class="flight-option" onclick="selectFlight('outbound',0,this)"><input type="radio" name="outbound"><div class="flight-info"><div class="flight-main">12:55 → 14:35 · 1h40</div><div class="flight-detail">Air France · CDG T2 → MUC T2</div></div><span class="flight-badge badge-af">AIR FRANCE</span></div>
@@ -120,7 +120,7 @@
 </div>
 
 <div class="card">
-  <div class="card-title">🛬 Vol retour — Jeudi 10 juillet · MUC → CDG</div>
+  <div class="card-title">🛬 Vol retour — Vendredi 10 juillet · MUC → CDG</div>
   <p class="section-note">Tous directs · Sélectionnez l'horaire qui vous convient</p>
   <div class="flight-options" id="return-options">
     <div class="flight-option" onclick="selectFlight('return',0,this)"><input type="radio" name="ret"><div class="flight-info"><div class="flight-main">10:10 → 11:55 · 1h45</div><div class="flight-detail">Air France · MUC → CDG</div></div><span class="flight-badge badge-af">AIR FRANCE</span></div>
@@ -258,8 +258,8 @@
       return '<div class="result-row">'+
         '<div class="result-row-top"><span class="result-name">'+r.nom+'</span>'+ffTags+'</div>'+
         '<div class="result-row-flights">'+
-          '<div class="result-flight"><strong>🛫 Aller · 7 juil</strong><span class="flight-badge '+allerClass+'" style="font-size:0.7rem">'+r.vol_aller+'</span></div>'+
-          '<div class="result-flight"><strong>🛬 Retour · 10 juil</strong><span class="flight-badge '+retourClass+'" style="font-size:0.7rem">'+r.vol_retour+'</span></div>'+
+          '<div class="result-flight"><strong>🛫 Aller · mar. 7 juil</strong><span class="flight-badge '+allerClass+'" style="font-size:0.7rem">'+r.vol_aller+'</span></div>'+
+          '<div class="result-flight"><strong>🛬 Retour · ven. 10 juil</strong><span class="flight-badge '+retourClass+'" style="font-size:0.7rem">'+r.vol_retour+'</span></div>'+
         '</div>'+
         '<div class="result-tags">'+seatTags+bagTags+'</div>'+
       '</div>';
